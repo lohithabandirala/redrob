@@ -1,0 +1,44 @@
+# Redrob Hackathon — Submission Metadata
+team_name: "AlgoYodhas"
+
+primary_contact:
+  name: "Bandirala Lohitha"
+  email: "lohithab94@gmail.com"
+  phone: "+91-7995838884"
+
+team_members:
+  - name: "Bandirala Lohitha"
+    email: "lohithab94@gmail.com"
+    role: "ML Engineer"
+
+github_repo: "https://github.com/lohithabandirala/redrob_hackathon"
+sandbox_link: "https://redrob9.streamlit.app/"
+
+reproduce_command: "python hackathon_submission/run_pipeline.py"
+
+compute:
+  platform: "Local Machine / Laptop"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11"
+  os: "Windows"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
+
+ai_tools_used:
+  - "Gemini"
+
+ai_usage_summary: |
+  Used Gemini as an AI coding assistant to quickly scaffold the repository, build the JSONL streaming pipeline, implement the Honeypot heuristics, build the FAISS/MiniLM integration, and debug ties in the candidate validation constraints. 
+
+methodology_summary: |
+  To navigate the 5-minute CPU constraint, we first pre-filtered the 100k candidate pool using an O(1) keyword boolean check for base AI/ML skills, dropping it to ~14k. Then, we ran these profiles through a SentenceTransformer (`all-MiniLM-L6-v2`) and FAISS to compute a semantic score against the JD. Finally, we re-ranked the top matches using a weighted formula that factored in exact hard-skill overlaps, experience brackets (penalizing under/over experienced), and behavioral signals (ghosting rates, profile completeness). We also explicitly built a chronological trap-filter to eliminate honeypots.
+
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true
