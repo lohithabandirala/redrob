@@ -69,24 +69,28 @@ candidates.jsonl  (100k profiles, ~465 MB)
 
 ---
 
-## Ranking Philosophy
+## Architecture & Ranking Philosophy
+Our system implements a **Multi-Stage AI Candidate Ranking PoC** based on modern Information Retrieval (IR) principles, designed strictly for CPU-only deployment while maximizing **NDCG@10**.
 
-### Why `all-MiniLM-L6-v2`?
-- **22 MB model**, runs on CPU in < 3 minutes for 5k candidates
-- Produces 384-dim sentence embeddings that capture **semantic synonymy** — "containerization" matches "Kubernetes/Docker", "MLOps" matches "ML pipeline orchestration" without exact keyword overlap
-- Inner-product (cosine) similarity via FAISS `IndexFlatIP` — exact, not approximate — for deterministic results
+### 1. Dual-Encoder Semantic Matching
+- **Model**: `all-MiniLM-L6-v2` (22 MB quantized model)
+- We use a dual-encoder architecture to generate dense contextual embeddings for both the JD and the candidate profiles. This captures **semantic synonymy** (e.g., "containerization" matches "Kubernetes/Docker") that naive keyword filters miss.
+- Retrieval is performed via **FAISS IndexFlatIP**, enabling exact inner-product (cosine) search in <200ms.
 
-### Why Multi-signal Re-ranking?
-Pure semantic similarity rewards candidates who know how to describe themselves eloquently. Our re-ranking layer adds:
-- **Hard-skills overlap (20%)** — exact JD skill-set intersection
-- **Experience bracket (15%)** — penalises under/over-experienced candidates, with consulting-trap and research-trap heuristics
-- **Behavioral signals (25%)** — recruiter responsiveness, GitHub activity, notice period, profile completeness: these are the best proxies for actual hiring success rates
+### 2. Pointwise Heuristic Reranker (Multi-Signal)
+Pure semantic similarity rewards candidates who know how to describe themselves eloquently. We treat the final stage as a Pointwise Regression task, scoring the retrieved subset using a calibrated weighted sum:
+- **Hard-skills overlap (20%)** — Exact JD skill-set intersection (Lexical check).
+- **Experience bracket (15%)** — Penalises under/over-experienced candidates, with mathematical traps for consulting/body-shop tenure.
+- **Behavioral signals (25%)** — Heavily rewards recruiter responsiveness, GitHub activity, open-to-work flags, and profile completeness.
 
-### Honeypot Elimination
-We detect and discard profiles with:
-1. **Temporal impossibility** — sum of career months > stated experience + 3 years buffer
-2. **Skill-duration fraud** — a skill duration > total career length + 2 years
-3. **Expert-inflation** — > 5 skills claimed "expert" with < 6 months usage each
+### 3. "Honeypot" Fraud Defense (Burstiness)
+We detect and discard adversarial profiles (bot-generated or white-font keyword stuffing) using strict mathematical proxies:
+1. **Perplexity / Burstiness Proxy**: We calculate vocabulary richness (unique words / total words). Profiles dropping below 20% richness are flagged as white-font keyword stuffing.
+2. **Temporal Impossibility**: Sum of career months > stated experience + 3 years buffer.
+3. **Expert-inflation**: > 5 skills claimed "expert" with < 6 months usage each.
+
+### 4. Explainability (Feature Highlights)
+To comply with transparent AI principles, the pipeline dynamically extracts the delta between candidate skills and JD requirements, outputting traceable, human-readable reasoning (e.g., *"Lacks required hands-on experience with Pinecone"*).
 
 ---
 
