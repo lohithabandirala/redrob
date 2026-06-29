@@ -188,7 +188,7 @@ def main():
     print()
     print("=" * 60)
     print(f"  Pipeline complete in {elapsed:.1f}s")
-    print(f"  Output saved → {args.out}")
+    print(f"  Output saved -> {args.out}")
     print(f"  Top candidate: {top_100[0]['candidate_id']} "
           f"(score={top_100[0]['score']:.4f})")
     print("=" * 60)
